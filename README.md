@@ -1,1 +1,1 @@
-![img](./static/type_graphics.png)
+![img](/static/type_graphics.png)
