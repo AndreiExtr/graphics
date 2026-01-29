@@ -1,0 +1,1 @@
+![img](./static/type_graphics.png)
