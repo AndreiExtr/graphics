@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import math
 
 # функция обновления графика
 def update_plot():
@@ -16,12 +17,34 @@ def update_plot():
     y = a * x**2 + b * x + c
 
     ax.clear()
-    ax.plot(x, y, color="#a81010")
+    ax.plot(x, y, color="#a81010", label="Парабола")
     ax.axhline(0)
     ax.axvline(0)
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
     ax.grid()
-    ax.set_ylim(-50, 100)  # ограничение оси Y от -50 до 100
+    ax.set_ylim(-50, 100)
+
+    # --- Вершина ---
+    x_vertex = -b / (2 * a)
+    y_vertex = a * x_vertex**2 + b * x_vertex + c
+    ax.plot(x_vertex, y_vertex, 'bo', label="Вершина")
+    ax.annotate(f'({x_vertex:.2f}, {y_vertex:.2f})',
+                xy=(x_vertex, y_vertex),
+                xytext=(x_vertex, y_vertex - 8),
+                fontsize=10 , ha='center')
+
+    # --- Корни (пересечение с X) ---
+    discriminant = b**2 - 4*a*c
+    if discriminant >= 0:
+        root1 = (-b + math.sqrt(discriminant)) / (2*a)
+        root2 = (-b - math.sqrt(discriminant)) / (2*a)
+        ax.plot([root1, root2], [0, 0], 'ro', label="Корни")
+        ax.annotate(f'{root1:.2f}', xy=(root1,0), xytext=(root1,5), fontsize=10, color='red')
+        ax.annotate(f'{root2:.2f}', xy=(root2,0), xytext=(root2,5), fontsize=10, color='red')
+    else:
+        ax.text(0, 50, "Корней нет", color='red', fontsize=12, ha='center')
+
+    ax.legend()
     canvas.draw()
 
 # сброс значений
@@ -36,7 +59,7 @@ def reset_plot():
 
 # окно приложения
 root = tk.Tk()
-root.title("График параболы")
+root.title("График параболы с вершиной и корнями")
 
 # сетка 6x6
 for i in range(6):
@@ -80,7 +103,7 @@ parabola_text = (
     "7. Пересечение с осью Y: (0, c)."
 )
 tk.Label(root, text=parabola_text, justify="left", font=("Arial", 11), bg="white", relief="solid", padx=10, pady=10)\
-    .grid(row=0, column=4, rowspan=5, sticky="n", padx=5, pady=5)
+    .grid(row=0, column=4, rowspan=6, sticky="n", padx=5, pady=5)
 
 # график в центре
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -91,4 +114,3 @@ canvas.get_tk_widget().grid(row=0, column=2, rowspan=6, columnspan=2, sticky="ns
 # первичная отрисовка
 update_plot()
 root.mainloop()
-
