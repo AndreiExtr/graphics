@@ -21,7 +21,7 @@ def update_plot():
     ax.axvline(0)
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
     ax.grid()
-    ax.set_ylim(-50, 100)  # ограничение оси Y от 0 до 100
+    ax.set_ylim(-50, 100)  # ограничение оси Y от -50 до 100
     canvas.draw()
 
 # сброс значений
