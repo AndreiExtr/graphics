@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import math
+from tkinter import filedialog
 
 # -------------------- логика --------------------
 def update_plot():
@@ -19,10 +20,12 @@ def update_plot():
 
     ax.clear()
 
+    # ui параболы
     ax.plot(x, y, color="#a81010", linewidth=2, label="Парабола")
     ax.axhline(0, linewidth=1)
     ax.axvline(0, linewidth=1)
 
+    # ui текста функции
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
     ax.set_ylim(-50, 100)
     ax.grid(True)
@@ -41,9 +44,9 @@ def update_plot():
     if d >= 0:
         r1 = (-b + math.sqrt(d)) / (2*a)
         r2 = (-b - math.sqrt(d)) / (2*a)
-        ax.plot([r1, r2], [0, 0], "ro", label="Корни")
-        ax.annotate(f'X1={r1:.2f}', xy=(r1,0), xytext=(r1,5), fontsize=10, color='red') # подсказка текст корня X1
-        ax.annotate(f'X2={r2:.2f}', xy=(r2,0), xytext=(r2,5), fontsize=10, color='red') # подсказка текст корня X2
+        ax.plot([r1, r2], [0, 0], "go", label="Корни")
+        ax.annotate(f'X1 = {r1:.2f}', xy=(r1,0), xytext=(r1,5), fontsize=10, color="#039C0F") # подсказка текст корня X1
+        ax.annotate(f'X2 = {r2:.2f}', xy=(r2,0), xytext=(r2,5), fontsize=10, color="#039C0F") # подсказка текст корня X2
     else:
         ax.text(0, 40, "Корней нет", ha="center", color="red")
 
@@ -75,7 +78,7 @@ root.option_add("*Font", ("Segoe UI", 10))
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-main = ttk.Frame(root, padding=10)
+main = ttk.Frame(root, padding=10) # отступ по краям основного интерфейса
 main.grid(sticky="nsew")
 
 main.columnconfigure(1, weight=1)
@@ -101,6 +104,7 @@ entry_a.insert(0, "1")
 entry_b.insert(0, "0")
 entry_c.insert(0, "0")
 
+# кнопки
 ttk.Button(left, text="Построить", command=update_plot)\
     .grid(row=3, column=0, columnspan=2, sticky="we", pady=(10, 5))
 
@@ -117,6 +121,58 @@ fig.patch.set_facecolor("#f8f9fa")
 
 canvas = FigureCanvasTkAgg(fig, master=center)
 canvas.get_tk_widget().pack(fill="both", expand=True)
+
+
+# масштаб колесиком мыши
+def on_scroll(event):
+
+    MIN_RANGE = 0.5
+    MAX_RANGE = 300
+
+    # если мышь вне области графика — не масштабируется
+    if event.xdata is None or event.ydata is None:
+        return
+
+    scale_factor = 0.9 if event.button == 'up' else 1.1 # скорость масштабирования
+
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+
+    x_center = event.xdata
+    y_center = event.ydata
+
+    new_x_min = x_center - (x_center - x_min) * scale_factor
+    new_x_max = x_center + (x_max - x_center) * scale_factor
+
+    new_y_min = y_center - (y_center - y_min) * scale_factor
+    new_y_max = y_center + (y_max - y_center) * scale_factor
+
+    # проверка диапазона
+    if (new_x_max - new_x_min) < MIN_RANGE or (new_x_max - new_x_min) > MAX_RANGE:
+        return
+    if (new_y_max - new_y_min) < MIN_RANGE or (new_y_max - new_y_min) > MAX_RANGE:
+        return
+
+    ax.set_xlim(new_x_min, new_x_max)
+    ax.set_ylim(new_y_min, new_y_max)
+
+    canvas.draw_idle()
+
+canvas.mpl_connect("scroll_event", on_scroll)
+
+# сохранение графики
+def save_plot_dialog():
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".png",
+        filetypes=[("PNG файл", "*.png"), ("PDF файл", "*.pdf"), ("SVG файл", "*.svg")],
+        title="Сохранить график"
+    )
+    if file_path:
+        fig.savefig(file_path, dpi=300)
+        print(f"График сохранён в {file_path}")
+
+ttk.Button(left, text="Сохранить", command=save_plot_dialog).grid(row=6, column=0, columnspan=2, sticky="we", pady=(5,0))
+
 
 # -------- правая панель --------
 right = ttk.LabelFrame(main, text="Справка", padding=10)
