@@ -1,1 +1,1 @@
-![img](/static/parabola.png)
+![img](/static/parabola_1.png)
