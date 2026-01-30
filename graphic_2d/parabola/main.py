@@ -1,10 +1,11 @@
 import tkinter as tk
+from tkinter import ttk
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import math
 
-# функция обновления графика
+# -------------------- логика --------------------
 def update_plot():
     try:
         a = float(entry_a.get())
@@ -17,99 +18,133 @@ def update_plot():
     y = a * x**2 + b * x + c
 
     ax.clear()
-    ax.plot(x, y, color="#a81010", label="Парабола")
-    ax.axhline(0)
-    ax.axvline(0)
+
+    ax.plot(x, y, color="#a81010", linewidth=2, label="Парабола")
+    ax.axhline(0, linewidth=1)
+    ax.axvline(0, linewidth=1)
+
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
-    ax.grid()
-    ax.set_ylim(-50, 100) # ограничение по оси Y от -50 до 100
+    ax.set_ylim(-50, 100)
+    ax.grid(True)
 
-    # --- Вершина ---
-    x_vertex = -b / (2 * a)
-    y_vertex = a * x_vertex**2 + b * x_vertex + c
-    ax.plot(x_vertex, y_vertex, 'bo', label="Вершина")
-    ax.annotate(f'({x_vertex:.2f}, {y_vertex:.2f})',
-                xy=(x_vertex, y_vertex),
-                xytext=(x_vertex, y_vertex - 8),
-                fontsize=10 , ha='center')
+    # вершина
+    xv = -b / (2 * a)
+    yv = a * xv**2 + b * xv + c
+    ax.plot(xv, yv, "bo", label="Вершина")
+    ax.annotate(f"Вершина\n({xv:.2f}, {yv:.2f})", # подсказка текст вершины
+                xy=(xv, yv),
+                xytext=(xv, yv - 10),
+                ha="center")
 
-    # --- Корни (пересечение с X) ---
-    discriminant = b**2 - 4*a*c
-    if discriminant >= 0:
-        root1 = (-b + math.sqrt(discriminant)) / (2*a)
-        root2 = (-b - math.sqrt(discriminant)) / (2*a)
-        ax.plot([root1, root2], [0, 0], 'ro', label="Корни")
-        ax.annotate(f'{root1:.2f}', xy=(root1,0), xytext=(root1,5), fontsize=10, color='red')
-        ax.annotate(f'{root2:.2f}', xy=(root2,0), xytext=(root2,5), fontsize=10, color='red')
+    # корни
+    d = b**2 - 4*a*c
+    if d >= 0:
+        r1 = (-b + math.sqrt(d)) / (2*a)
+        r2 = (-b - math.sqrt(d)) / (2*a)
+        ax.plot([r1, r2], [0, 0], "ro", label="Корни")
+        ax.annotate(f'X1={r1:.2f}', xy=(r1,0), xytext=(r1,5), fontsize=10, color='red') # подсказка текст корня X1
+        ax.annotate(f'X2={r2:.2f}', xy=(r2,0), xytext=(r2,5), fontsize=10, color='red') # подсказка текст корня X2
     else:
-        ax.text(0, 50, "Корней нет", color='red', fontsize=12, ha='center')
+        ax.text(0, 40, "Корней нет", ha="center", color="red")
 
     ax.legend()
     canvas.draw()
 
-# сброс значений
+
+# ----------------- Сброс данных -------------
 def reset_plot():
     entry_a.delete(0, tk.END)
     entry_b.delete(0, tk.END)
     entry_c.delete(0, tk.END)
+
     entry_a.insert(0, "1")
     entry_b.insert(0, "0")
     entry_c.insert(0, "0")
+
     update_plot()
 
-# окно приложения
+
+# -------------------- UI --------------------
 root = tk.Tk()
-root.title("График параболы с вершиной и корнями")
+root.title("Парабола")
+root.geometry("1100x600")
 
-# сетка 6x6
-for i in range(6):
-    root.grid_rowconfigure(i, weight=1, minsize=50)
-for j in range(6):
-    root.grid_columnconfigure(j, weight=1, minsize=80)
+root.option_add("*Font", ("Segoe UI", 10))
 
-# левая часть: метки и поля ввода
-tk.Label(root, text="Переменная a:", font=("Arial", 12)).grid(row=0, column=0, sticky="e", padx=5, pady=5)
-tk.Label(root, text="Переменная b:", font=("Arial", 12)).grid(row=1, column=0, sticky="e", padx=5, pady=5)
-tk.Label(root, text="Переменная c:", font=("Arial", 12)).grid(row=2, column=0, sticky="e", padx=5, pady=5)
+# основная сетка
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
 
-entry_a = tk.Entry(root, font=("Arial", 12))
-entry_b = tk.Entry(root, font=("Arial", 12))
-entry_c = tk.Entry(root, font=("Arial", 12))
+main = ttk.Frame(root, padding=10)
+main.grid(sticky="nsew")
+
+main.columnconfigure(1, weight=1)
+main.rowconfigure(0, weight=1)
+
+# -------- левая панель --------
+left = ttk.LabelFrame(main, text="Коэффициенты", padding=10)
+left.grid(row=0, column=0, sticky="ns")
+
+ttk.Label(left, text="a").grid(row=0, column=0, sticky="w", pady=5)
+ttk.Label(left, text="b").grid(row=1, column=0, sticky="w", pady=5)
+ttk.Label(left, text="c").grid(row=2, column=0, sticky="w", pady=5)
+
+entry_a = ttk.Entry(left, width=6, justify="center")
+entry_b = ttk.Entry(left, width=6, justify="center")
+entry_c = ttk.Entry(left, width=6, justify="center")
+
+entry_a.grid(row=0, column=1, padx=5)
+entry_b.grid(row=1, column=1, padx=5)
+entry_c.grid(row=2, column=1, padx=5)
 
 entry_a.insert(0, "1")
 entry_b.insert(0, "0")
 entry_c.insert(0, "0")
 
-entry_a.grid(row=0, column=1, sticky="we", padx=5, pady=5)
-entry_b.grid(row=1, column=1, sticky="we", padx=5, pady=5)
-entry_c.grid(row=2, column=1, sticky="we", padx=5, pady=5)
+ttk.Button(left, text="Построить", command=update_plot)\
+    .grid(row=3, column=0, columnspan=2, sticky="we", pady=(10, 5))
 
-# кнопки
-tk.Button(root, text="Построить", fg='white', bg="#090F46", font=("Arial", 11, "bold"), command=update_plot)\
-    .grid(row=3, column=0, columnspan=1, sticky="we", padx=5, pady=5)
-tk.Button(root, text="Сбросить", fg='white', bg="#46090E", font=("Arial", 11, "bold"), command=reset_plot)\
-    .grid(row=3, column=1, columnspan=1, sticky="we", padx=5, pady=5)
+ttk.Button(left, text="Сбросить", command=reset_plot)\
+    .grid(row=4, column=0, columnspan=2, sticky="we")
 
-# правая часть: текст с определением параболы
-parabola_text = (
-    "Парабола — график квадратичной функции y = ax² + bx + c.\n"
-    "Свойства параболы:\n"
-    "1. Вершина — минимум (a>0) или максимум (a<0).\n"
-    "2. Направление ветвей определяется a.\n"
-    "3. Ширина и крутизна зависят от |a|.\n"
-    "4. Горизонтальное смещение — b.\n"
-    "5. Вертикальное смещение — c.\n"
-    "6. Ось симметрии: x = -b/(2a).\n"
-    "7. Пересечение с осью Y: (0, c)."
+# -------- центр: график --------
+center = ttk.Frame(main)
+center.grid(row=0, column=1, sticky="nsew", padx=10)
+
+plt.style.use("seaborn-v0_8-whitegrid")
+fig, ax = plt.subplots(figsize=(10, 5)) # размер графики
+fig.patch.set_facecolor("#f8f9fa")
+
+canvas = FigureCanvasTkAgg(fig, master=center)
+canvas.get_tk_widget().pack(fill="both", expand=True)
+
+# -------- правая панель --------
+right = ttk.LabelFrame(main, text="Справка", padding=10)
+right.grid(row=0, column=2, sticky="ns")
+
+text = tk.Text(
+    right,
+    width=35,
+    height=18,
+    wrap="word",
+    bg="#f0f0f0",
+    relief="flat"
 )
-tk.Label(root, text=parabola_text, justify="left", font=("Arial", 11), bg="white", relief="solid", padx=10, pady=10)\
-    .grid(row=0, column=4, rowspan=6, sticky="n", padx=5, pady=5)
 
-# график в центре
-plt.style.use('seaborn-v0_8-whitegrid')
-fig, ax = plt.subplots(figsize=(8, 6))
-canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.get_tk_widget().grid(row=0, column=2, rowspan=6, columnspan=2, sticky="nsew", padx=5, pady=5)
+
+text.insert(
+    "1.0",
+    "Парабола — график функции y = ax² + bx + c.\n\n"
+    "• Вершина — минимум (a > 0) или максимум (a < 0)\n"
+    "• a определяет направление ветвей\n"
+    "• |a| влияет на ширину\n"
+    "• b сдвигает влево / вправо\n"
+    "• c — пересечение с осью Y\n"
+    "• Ось симметрии: x = -b / (2a)"
+)
+
+text.config(state="disabled")
+text.pack()
 
 # первичная отрисовка
 update_plot()
