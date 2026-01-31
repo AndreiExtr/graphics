@@ -21,9 +21,9 @@ def update_plot():
     ax.clear()
 
     # ui параболы
-    ax.plot(x, y, color="#a81010", linewidth=2, label="Парабола")
-    ax.axhline(0, linewidth=1)
-    ax.axvline(0, linewidth=1)
+    ax.plot(x, y, color="#a81010", linewidth=2, label="Парабола") # линия параболы
+    ax.axhline(0, linewidth=1) # ось x
+    ax.axvline(0, linewidth=1) # ось y
 
     # ui текста функции
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
@@ -33,7 +33,7 @@ def update_plot():
     # вершина
     xv = -b / (2 * a)
     yv = a * xv**2 + b * xv + c
-    ax.plot(xv, yv, "bo", label="Вершина")
+    ax.plot(xv, yv, "bo", label="Вершина") # легенда
     ax.annotate(f"Вершина\n({xv:.2f}, {yv:.2f})", # подсказка текст вершины
                 xy=(xv, yv),
                 xytext=(xv, yv - 10),
@@ -50,7 +50,18 @@ def update_plot():
     else:
         ax.text(0, 40, "Корней нет", ha="center", color="red")
 
-    ax.legend()
+    # ---- Интервалы возрастания/убывания ----
+    x_min, x_max = ax.get_xlim()
+    if a > 0:
+        # убывает слева, возрастает справа
+        ax.axvspan(x_min, xv, color='red', alpha=0.1, label="Убывает")
+        ax.axvspan(xv, x_max, color='green', alpha=0.1, label="Возрастает")
+    else:
+        # возрастает слева, убывает справа
+        ax.axvspan(x_min, xv, color='green', alpha=0.1, label="Возрастает")
+        ax.axvspan(xv, x_max, color='red', alpha=0.1, label="Убывает")
+
+    #ax.legend() # обозначения на графике (по умолчанию справа сверху)
     canvas.draw()
 
 
@@ -175,21 +186,24 @@ ttk.Button(left, text="Сохранить", command=save_plot_dialog).grid(row=6
 
 
 # -------- правая панель --------
-right = ttk.LabelFrame(main, text="Справка", padding=10)
-right.grid(row=0, column=2, sticky="ns")
+# родительский фрейм для двух блоков
+right_frame = ttk.Frame(main)
+right_frame.grid(row=0, column=2, rowspan=1, sticky="ns")  # весь правый столбец
 
-text = tk.Text(
-    right,
+# ---- Блок 1: Справка ----
+right_help = ttk.LabelFrame(right_frame, text="Справка", padding=10)
+right_help.pack(fill="both", expand=True, pady=(0,5))  # отступ между блоками
+
+
+text_help = tk.Text(
+    right_help,
     width=35,
-    height=18,
+    height=10,
     wrap="word",
     bg="#f0f0f0",
     relief="flat"
 )
-
-
-text.insert(
-    "1.0",
+text_help.insert("1.0",
     "Парабола — график функции y = ax² + bx + c.\n\n"
     "• Вершина — минимум (a > 0) или максимум (a < 0)\n"
     "• a определяет направление ветвей\n"
@@ -198,9 +212,61 @@ text.insert(
     "• c — пересечение с осью Y\n"
     "• Ось симметрии: x = -b / (2a)"
 )
+text_help.config(state="disabled")
+text_help.pack(fill="both", expand=True)
 
-text.config(state="disabled")
-text.pack()
+# ---- Блок 2: Обозначения ----
+right_legend = ttk.LabelFrame(right_frame, text="Обозначения", padding=10)
+right_legend.pack(fill="both", expand=True, pady=(5,0))
+
+text_legend = tk.Text(
+    right_legend,
+    width=35,
+    height=10,
+    wrap="word",
+    bg="#f0f0f0",
+    relief="flat"
+)
+
+# ---- квадрат и текст ----
+# Вершина
+frame_vertex = ttk.Frame(right_legend)
+frame_vertex.pack(fill="x", pady=5)
+
+canvas_vertex = tk.Canvas(frame_vertex, width=20, height=20, highlightthickness=0)
+canvas_vertex.pack(side="left", padx=(0, 30))
+canvas_vertex.create_oval(2, 2, 18, 18, fill="blue", outline="blue")
+
+ttk.Label(frame_vertex, text="Вершина").pack(side="left") 
+
+# Корни
+frame_root = ttk.Frame(right_legend)
+frame_root.pack(fill="x", pady=5)
+
+canvas_root = tk.Canvas(frame_root, width=20, height=20, highlightthickness=0)
+canvas_root.pack(side="left", padx=(0, 30))
+canvas_root.create_oval(2, 2, 18, 18, fill="green", outline="green")
+
+ttk.Label(frame_root, text="Корни").pack(side="left") 
+
+# Возрастает
+frame_up = ttk.Frame(right_legend)
+frame_up.pack(fill="x", pady=5)
+
+canvas_up = tk.Canvas(frame_up, width=40, height=20, bg="#dcf0dc", highlightthickness=0)
+canvas_up.pack(side="left", padx=(0, 10))
+canvas_up.create_rectangle(2, 2, 18, 18, fill="#dcf0dc", outline="")
+ttk.Label(frame_up, text="Возрастает").pack(side="left")
+
+# Убывает
+frame_down = ttk.Frame(right_legend)
+frame_down.pack(fill="x", pady=5)
+
+canvas_down = tk.Canvas(frame_down, width=40, height=20, bg="#FFe5e5", highlightthickness=0)
+canvas_down.pack(side="left", padx=(0, 10))
+canvas_down.create_rectangle(2, 2, 18, 18, fill="#FFe5e5", outline="")
+
+ttk.Label(frame_down, text="Убывает").pack(side="left")
 
 # первичная отрисовка
 update_plot()
