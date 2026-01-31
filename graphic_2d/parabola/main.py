@@ -6,6 +6,31 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import math
 from tkinter import filedialog
 
+
+# -------------------- ИГРА --------------------
+
+levels = [
+    {
+        "name": "Уровень 1: Попади в точку",
+        "targets": [(2, 6)],
+        "tolerance": 0.3
+    },
+    {
+        "name": "Уровень 2: Две цели",
+        "targets": [(-3, 5), (3, 5)],
+        "tolerance": 0.3
+    },
+    {
+        "name": "Уровень 3: Высокая цель",
+        "targets": [(0, 8)],
+        "tolerance": 0.3
+    }
+]
+game_active = False
+current_level = 0
+# -------------------- ИГРА --------------------
+
+
 # -------------------- логика --------------------
 def update_plot():
     try:
@@ -17,6 +42,7 @@ def update_plot():
 
     x = np.linspace(-20, 20, 400)
     y = a * x**2 + b * x + c
+    
 
     ax.clear()
 
@@ -26,9 +52,20 @@ def update_plot():
     ax.axvline(0, linewidth=1) # ось y
 
     # ui текста функции
-    ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14)
+    ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14, pad=20)
     ax.set_ylim(-50, 100)
     ax.grid(True)
+
+        # -------------------- ИГРА --------------------
+        # ---------- цели уровня ----------
+    if game_active:
+        level = levels[current_level]
+        for tx, ty in level["targets"]:
+            ax.plot(tx, ty, "ro", markersize=10)
+            ax.annotate("Цель", (tx, ty), xytext=(tx+0.5, ty+0.5))
+
+    # -------------------- ИГРА --------------------
+
 
     # вершина
     xv = -b / (2 * a)
@@ -62,7 +99,50 @@ def update_plot():
         ax.axvspan(xv, x_max, color='red', alpha=0.1, label="Убывает")
 
     #ax.legend() # обозначения на графике (по умолчанию справа сверху)
+
+    # -------------------- ИГРА --------------------
+    if game_active and check_win(x, y):
+        ax.text(0.5, 0.9,
+                f"{levels[current_level]['name']} пройден!",
+                transform=ax.transAxes,
+                fontsize=16,
+                color="green",
+                ha="center")
+    # -------------------- ИГРА --------------------
+
+
     canvas.draw()
+
+
+def check_win(x, y):
+    level = levels[current_level]
+    tol = level["tolerance"]
+
+    for tx, ty in level["targets"]:
+        # минимальное расстояние от параболы до цели
+        dist = np.min(np.sqrt((x - tx)**2 + (y - ty)**2))
+        if dist > tol:
+            return False
+    return True
+
+def next_level():
+    global current_level, game_active
+    if not game_active:
+        return
+
+    if current_level < len(levels) - 1:
+        current_level += 1
+        reset_plot()
+    else:
+        game_active = False
+        ax.text(0.5, 0.9, "ИГРА ПРОЙДЕНА!",
+                transform=ax.transAxes,
+                fontsize=18,
+                color="blue",
+                ha="center")
+        canvas.draw()
+
+
 
 
 # ----------------- Сброс данных -------------
@@ -95,9 +175,16 @@ main.grid(sticky="nsew")
 main.columnconfigure(1, weight=1)
 main.rowconfigure(0, weight=1)
 
+
 # -------- левая панель --------
-left = ttk.LabelFrame(main, text="Коэффициенты", padding=10)
-left.grid(row=0, column=0, sticky="ns")
+# родительский фрейм для двух блоков
+left_frame = ttk.Frame(main)
+left_frame.grid(row=0, column=0, rowspan=1, sticky="ns")  # весь правый столбец
+
+
+# Блок 1: Коэффициенты
+left = ttk.LabelFrame(left_frame, text="Коэффициенты", padding=10)
+left.pack(fill="both", expand=True, pady=(5,0))
 
 ttk.Label(left, text="a").grid(row=0, column=0, sticky="w", pady=5)
 ttk.Label(left, text="b").grid(row=1, column=0, sticky="w", pady=5)
@@ -121,6 +208,57 @@ ttk.Button(left, text="Построить", command=update_plot)\
 
 ttk.Button(left, text="Сбросить", command=reset_plot)\
     .grid(row=4, column=0, columnspan=2, sticky="we")
+
+# сохранение графики
+def save_plot_dialog():
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".png",
+        filetypes=[("PNG файл", "*.png"), ("PDF файл", "*.pdf"), ("SVG файл", "*.svg")],
+        title="Сохранить график"
+    )
+    if file_path:
+        fig.savefig(file_path, dpi=300)
+        print(f"График сохранён в {file_path}")
+
+ttk.Button(left, text="Сохранить", command=save_plot_dialog).grid(row=5, column=0, columnspan=2, sticky="we", pady=(5,0))
+
+
+# Блок 2: Игра
+left_game = ttk.LabelFrame(left_frame, text="Игра", padding=10)
+left_game.pack(fill="both", expand=True, pady=(5,0))
+
+
+left_game_text = tk.Text(
+    left_game,
+    width=35,
+    height=10,
+    wrap="word",
+    bg="#f0f0f0",
+    relief="flat"
+)
+left_game_text.insert("1.0",
+    "Цель игры — с помощью одной параболы\n"
+    "попадать в заданные точки (цели)\n"
+    "и проходить уровни возрастающей сложности.\n"
+)
+
+left_game_text.config(state="disabled")
+left_game_text.pack(fill="both", expand=True)
+
+def start_game():
+    global game_active, current_level
+    game_active = True
+    current_level = 0
+    reset_plot()
+
+
+ttk.Button(left_game, text="Начать игру", command=start_game)\
+    .pack(fill="x", pady=(0,5))
+
+
+ttk.Button(left_game, text="Следующий уровень", command=next_level)\
+    .pack(fill="x")
+
 
 # -------- центр: график --------
 center = ttk.Frame(main)
@@ -171,19 +309,6 @@ def on_scroll(event):
 
 canvas.mpl_connect("scroll_event", on_scroll)
 
-# сохранение графики
-def save_plot_dialog():
-    file_path = filedialog.asksaveasfilename(
-        defaultextension=".png",
-        filetypes=[("PNG файл", "*.png"), ("PDF файл", "*.pdf"), ("SVG файл", "*.svg")],
-        title="Сохранить график"
-    )
-    if file_path:
-        fig.savefig(file_path, dpi=300)
-        print(f"График сохранён в {file_path}")
-
-ttk.Button(left, text="Сохранить", command=save_plot_dialog).grid(row=6, column=0, columnspan=2, sticky="we", pady=(5,0))
-
 
 # -------- правая панель --------
 # родительский фрейм для двух блоков
@@ -228,7 +353,6 @@ text_legend = tk.Text(
     relief="flat"
 )
 
-# ---- квадрат и текст ----
 # Вершина
 frame_vertex = ttk.Frame(right_legend)
 frame_vertex.pack(fill="x", pady=5)
