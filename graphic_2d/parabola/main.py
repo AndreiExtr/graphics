@@ -56,6 +56,10 @@ def update_plot():
     ax.axhline(0, linewidth=1) # ось x
     ax.axvline(0, linewidth=1) # ось y
 
+    # подписи осей
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
     # ui текста функции
     ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14, pad=20)
     ax.set_ylim(-50, 100)
@@ -129,25 +133,6 @@ def check_win(x, y):
         if dist > tol:
             return False
     return True
-
-def next_level():
-    global current_level, game_active
-    if not game_active:
-        return
-
-    if current_level < len(levels) - 1:
-        current_level += 1
-        reset_plot()
-    else:
-        game_active = False
-        ax.text(0.5, 0.9, "ИГРА ПРОЙДЕНА!",
-                transform=ax.transAxes,
-                fontsize=18,
-                color="blue",
-                ha="center")
-        canvas.draw()
-
-
 
 
 # ----------------- Сброс данных -------------
@@ -256,12 +241,37 @@ def start_game():
     current_level = 0
     reset_plot()
 
+def next_level():
+    global current_level, game_active
+    if not game_active:
+        return
+
+    if current_level < len(levels) - 1:
+        current_level += 1
+        reset_plot()
+    else:
+        game_active = False
+        ax.text(0.5, 0.9, "ИГРА ПРОЙДЕНА!",
+                transform=ax.transAxes,
+                fontsize=18,
+                color="blue",
+                ha="center")
+        canvas.draw()
+
+def end_game():
+    global game_active, current_level
+    game_active = False
+    reset_plot()
+
 
 ttk.Button(left_game, text="Начать игру", command=start_game)\
     .pack(fill="x", pady=(0,5))
 
 
 ttk.Button(left_game, text="Следующий уровень", command=next_level)\
+    .pack(fill="x", pady=(0,5))
+
+ttk.Button(left_game, text="Закончить игру", command=end_game)\
     .pack(fill="x")
 
 
