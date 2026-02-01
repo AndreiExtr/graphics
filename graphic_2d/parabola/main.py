@@ -24,6 +24,11 @@ levels = [
         "name": "Уровень 3: Высокая цель",
         "targets": [(0, 8)],
         "tolerance": 0.3
+    },
+    {
+        "name": "Уровень 4: Три вершины",
+        "targets": [(0, -4),(-2, 6),(2, 6)],
+        "tolerance": 0.3
     }
 ]
 game_active = False
