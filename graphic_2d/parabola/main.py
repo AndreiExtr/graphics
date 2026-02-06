@@ -281,7 +281,7 @@ center.grid(row=0, column=1, sticky="nsew", padx=10)
 
 plt.style.use("seaborn-v0_8-whitegrid")
 fig, ax = plt.subplots(figsize=(10, 5)) # размер графики
-fig.patch.set_facecolor("#f8f9fa")
+fig.patch.set_facecolor("#f0f0f0")
 
 canvas = FigureCanvasTkAgg(fig, master=center)
 canvas.get_tk_widget().pack(fill="both", expand=True)
