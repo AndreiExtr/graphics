@@ -61,7 +61,7 @@ def update_plot():
     ax.set_ylabel("y")
 
     # ui текста функции
-    ax.set_title(f"y = {a}x² + {b}x + {c}", fontsize=14, pad=20)
+    ax.set_title(f" Моя парабола: y = {a}x² + {b}x + {c}", fontsize=14, pad=20)
     ax.set_ylim(-50, 100)
     ax.grid(True)
 
